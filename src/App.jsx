@@ -77,6 +77,10 @@ export default function App() {
 
   const key = mkKey(curYear, curMonth)
   const md  = householdData?.months?.[key] || { incomeSources: [], savings: 0, expenses: [] }
+
+  // Ingresos del mes anterior (para el botón "Copiar del mes anterior")
+  const prevMonthKey = curMonth === 0 ? mkKey(curYear - 1, 11) : mkKey(curYear, curMonth - 1)
+  const prevMonthSources = householdData?.months?.[prevMonthKey]?.incomeSources || []
   const fixedExpenses = householdData?.fixedExpenses || []
 
   const totalFixed  = fixedExpenses.reduce((s, e) => s + e.amount, 0)
@@ -167,6 +171,7 @@ export default function App() {
       )}
       {showIncome && (
         <IncomeModal sources={md.incomeSources || []}
+          prevSources={prevMonthSources}
           onClose={() => setShowIncome(false)}
           onSave={src => doUpdateMonth({ incomeSources: src })} />
       )}

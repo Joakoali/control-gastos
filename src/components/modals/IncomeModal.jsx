@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { toFloat, newId } from '../../utils'
 import { fmt } from '../../utils'
 
-export default function IncomeModal({ sources, onClose, onSave }) {
+export default function IncomeModal({ sources, prevSources = [], onClose, onSave }) {
   const [items, setItems] = useState(
     sources.length > 0
       ? sources.map(s => ({ ...s }))
@@ -11,6 +11,14 @@ export default function IncomeModal({ sources, onClose, onSave }) {
           { id: 'i2', name: 'Sueldo Esposa', amount: '' },
         ]
   )
+  const [copied, setCopied] = useState(false)
+
+  const copyFromPrev = () => {
+    if (prevSources.length === 0) return
+    setItems(prevSources.map(s => ({ ...s, id: newId() })))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const update = (id, field, val) =>
     setItems(prev => prev.map(i => (i.id === id ? { ...i, [field]: val } : i)))
@@ -35,9 +43,26 @@ export default function IncomeModal({ sources, onClose, onSave }) {
       <div className="modal">
         <div className="modal-handle" />
         <div className="modal-title">💰 Ingresos del mes</div>
-        <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 12 }}>
           Añadí sueldos, extras, comisiones o cualquier ingreso de este mes.
         </p>
+
+        {prevSources.length > 0 && (
+          <button
+            onClick={copyFromPrev}
+            style={{
+              width: '100%', padding: '10px 14px', marginBottom: 14,
+              border: '2px dashed #c4b5fd', borderRadius: 12,
+              background: copied ? '#f0fdf4' : '#faf5ff',
+              color: copied ? '#059669' : '#7c3aed',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'all 0.2s',
+            }}
+          >
+            {copied ? '✅ Copiado!' : '📋 Copiar sueldos del mes anterior'}
+          </button>
+        )}
 
         {items.map((item, idx) => (
           <div key={item.id} className="income-source-row">

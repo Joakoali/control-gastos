@@ -6,6 +6,7 @@ export default function AddModal({ initial, onClose, onSave }) {
   const [name, setName] = useState(initial?.name || '')
   const [amt,  setAmt]  = useState(initial?.amount ? String(initial.amount) : '')
   const [cat,  setCat]  = useState(initial?.category || 'otros')
+  const [date, setDate] = useState(initial?.date || todayStr())
   const nameRef = useRef()
 
   useEffect(() => { setTimeout(() => nameRef.current?.focus(), 300) }, [])
@@ -13,7 +14,7 @@ export default function AddModal({ initial, onClose, onSave }) {
   const save = () => {
     const a = toFloat(amt)
     if (!name.trim() || a <= 0) return
-    onSave({ name: name.trim(), amount: a, category: cat, date: todayStr() })
+    onSave({ name: name.trim(), amount: a, category: cat, date })
     onClose()
   }
 
@@ -45,6 +46,16 @@ export default function AddModal({ initial, onClose, onSave }) {
             onChange={e => setAmt(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && save()}
             placeholder="0,00"
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Fecha</label>
+          <input
+            className="form-input"
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
           />
         </div>
 
