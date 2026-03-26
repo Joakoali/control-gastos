@@ -20,7 +20,7 @@ export default function App() {
   const {
     householdId, householdData, loadingHH,
     createHousehold, joinHousehold,
-    updateMonth, updateFixed,
+    updateMonth, updateFixed, importHistoricalData,
   } = useHousehold(user)
 
   const today = new Date()
@@ -29,6 +29,8 @@ export default function App() {
   const [tab, setTab] = useState('variables')
   const [loginError, setLoginError] = useState('')
 
+  const [importing,   setImporting]   = useState(false)
+  const [importMsg,   setImportMsg]   = useState('')
   const [showAdd,     setShowAdd]     = useState(false)
   const [editExp,     setEditExp]     = useState(null)
   const [editFixed,   setEditFixed]   = useState(null)
@@ -196,6 +198,23 @@ export default function App() {
               <div style={{ fontSize: 36, fontWeight: 800, color: '#4c1d95', letterSpacing: 8 }}>{householdId}</div>
               <div style={{ fontSize: 12, color: '#7c3aed', marginTop: 6 }}>Compartí este código para que tu pareja pueda unirse</div>
             </div>
+            <button
+              onClick={async () => {
+                setImporting(true)
+                setImportMsg('')
+                try {
+                  const n = await importHistoricalData()
+                  setImportMsg(n > 0 ? `✅ ${n} meses importados correctamente` : '✅ Los datos ya estaban cargados')
+                } catch {
+                  setImportMsg('❌ Error al importar. Intentá de nuevo.')
+                }
+                setImporting(false)
+              }}
+              disabled={importing}
+              style={{ width: '100%', padding: 15, border: 'none', borderRadius: 13, background: '#ede9fe', color: '#7c3aed', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginBottom: 10 }}>
+              {importing ? 'Importando...' : '📂 Importar datos históricos'}
+            </button>
+            {importMsg && <div style={{ textAlign: 'center', fontSize: 13, marginBottom: 12, color: importMsg.startsWith('✅') ? '#059669' : '#ef4444' }}>{importMsg}</div>}
             <button onClick={() => { logout(); setShowCode(false) }}
               style={{ width: '100%', padding: 15, border: 'none', borderRadius: 13, background: '#fee2e2', color: '#ef4444', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
               Cerrar sesión

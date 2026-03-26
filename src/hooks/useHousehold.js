@@ -5,6 +5,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { DEFAULT_FIXED, MARZO_2026 } from '../data/initialData'
+import { HISTORICAL_MONTHS } from '../data/historicalData'
 
 // Genera un código de hogar de 6 chars
 const genCode = () => Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -48,6 +49,7 @@ export function useHousehold(user) {
       createdBy: user.uid,
       fixedExpenses: DEFAULT_FIXED,
       months: {
+        ...HISTORICAL_MONTHS,
         '2026-2': {
           incomeSources: [
             { id: 'i1', name: 'Sueldo Joako',  amount: 1553.33 },
@@ -106,6 +108,21 @@ export function useHousehold(user) {
     await updateDoc(doc(db, 'households', householdId), { fixedExpenses })
   }, [householdId])
 
+  // ── Importar datos históricos al hogar existente ─────
+  const importHistoricalData = useCallback(async () => {
+    if (!householdId) return
+    const monthsPatch = {}
+    Object.entries(HISTORICAL_MONTHS).forEach(([key, val]) => {
+      // Solo importar meses que no existan ya en el hogar
+      if (!householdData?.months?.[key]) {
+        monthsPatch[`months.${key}`] = val
+      }
+    })
+    if (Object.keys(monthsPatch).length === 0) return 0
+    await updateDoc(doc(db, 'households', householdId), monthsPatch)
+    return Object.keys(monthsPatch).length
+  }, [householdId, householdData])
+
   return {
     householdId,
     householdData,
@@ -114,5 +131,6 @@ export function useHousehold(user) {
     joinHousehold,
     updateMonth,
     updateFixed,
+    importHistoricalData,
   }
 }
