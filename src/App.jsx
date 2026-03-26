@@ -48,6 +48,29 @@ export default function App() {
     }
   }, [])
 
+  // ── Manejo del botón "Atrás" en Android ─────────────
+  // Cuando se abre un modal, empujamos un estado al historial.
+  // Al presionar atrás, interceptamos el popstate y cerramos el modal.
+  const anyModalOpen = showAdd || showIncome || showSavings || showCode || !!editFixed || addFixed
+
+  useEffect(() => {
+    if (anyModalOpen) {
+      window.history.pushState({ modal: true }, '')
+    }
+  }, [anyModalOpen])
+
+  useEffect(() => {
+    const onBack = () => {
+      if (showAdd)              { setShowAdd(false); setEditExp(null); return }
+      if (showIncome)           { setShowIncome(false); return }
+      if (showSavings)          { setShowSavings(false); return }
+      if (editFixed || addFixed){ setEditFixed(null); setAddFixed(false); return }
+      if (showCode)             { setShowCode(false); return }
+    }
+    window.addEventListener('popstate', onBack)
+    return () => window.removeEventListener('popstate', onBack)
+  }, [showAdd, showIncome, showSavings, editFixed, addFixed, showCode])
+
   if (authLoading || loadingHH) {
     return (
       <div style={{
