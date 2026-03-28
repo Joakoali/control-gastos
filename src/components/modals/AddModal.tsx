@@ -38,7 +38,7 @@ export default function AddModal({ initial, onClose, onSave }: Props) {
 
         <div className="mb-[14px]">
           <label className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.4px] mb-[6px] block">Importe (€)</label>
-          <input className="w-full p-[13px_14px] border-2 border-slate-200 rounded-[13px] text-[22px] font-bold text-indigo-600 outline-none focus:border-indigo-600 bg-white [appearance:none]" type="number" inputMode="decimal" value={amt} onChange={e => setAmt(e.target.value)} onKeyDown={e => e.key === 'Enter' && save()} placeholder="0,00" />
+          <input className="w-full p-[13px_14px] border-2 border-slate-200 rounded-[13px] text-[22px] font-bold text-indigo-600 outline-none focus:border-indigo-600 bg-white [appearance:none]" type="text" inputMode="decimal" value={amt} onChange={e => setAmt(e.target.value.replace(/[^0-9.,]/g, ''))} onKeyDown={e => e.key === 'Enter' && save()} placeholder="0,00" />
         </div>
 
         <div className="mb-[14px]">

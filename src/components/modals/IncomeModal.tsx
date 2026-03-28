@@ -63,7 +63,7 @@ export default function IncomeModal({ sources, prevSources = [], onClose, onSave
             <span className="text-[20px]">{idx === 0 ? '👤' : idx === 1 ? '👤' : '⭐'}</span>
             <div className="flex-1 flex flex-col gap-[6px]">
               <input className="w-full p-[8px_10px] border-2 border-slate-200 rounded-[10px] text-[14px] text-[#1e1b4b] outline-none focus:border-indigo-600 bg-white" value={item.name as string} onChange={e => update(item.id, 'name', e.target.value)} placeholder="Nombre del ingreso" />
-              <input className="w-full p-[8px_10px] border-2 border-slate-200 rounded-[10px] text-[16px] font-bold text-emerald-600 outline-none focus:border-emerald-500 bg-white [appearance:none]" type="number" inputMode="decimal" value={item.amount as string} onChange={e => update(item.id, 'amount', e.target.value)} placeholder="0,00" />
+              <input className="w-full p-[8px_10px] border-2 border-slate-200 rounded-[10px] text-[16px] font-bold text-emerald-600 outline-none focus:border-emerald-500 bg-white [appearance:none]" type="text" inputMode="decimal" value={item.amount as string} onChange={e => update(item.id, 'amount', e.target.value.replace(/[^0-9.,]/g, ''))} placeholder="0,00" />
             </div>
             {items.length > 1 && (
               <button className="bg-transparent border-none text-slate-200 text-[22px] cursor-pointer p-[2px] flex-shrink-0 active:text-red-500" onClick={() => remove(item.id)}>×</button>

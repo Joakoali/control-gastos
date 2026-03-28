@@ -24,7 +24,7 @@ export default function SavingsModal({ savings, quedaMes, onClose, onSave }: Pro
 
         <div className="mb-[14px]">
           <label className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.4px] mb-[6px] block">Ahorros totales actuales (€)</label>
-          <input className="w-full p-[13px_14px] border-2 border-slate-200 rounded-[13px] text-[22px] font-bold text-violet-700 outline-none focus:border-violet-600 bg-white [appearance:none]" type="number" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} placeholder="0,00" autoFocus />
+          <input className="w-full p-[13px_14px] border-2 border-slate-200 rounded-[13px] text-[22px] font-bold text-violet-700 outline-none focus:border-violet-600 bg-white [appearance:none]" type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value.replace(/[^0-9.,]/g, ''))} placeholder="0,00" autoFocus />
         </div>
 
         <div className="bg-violet-50 rounded-[13px] p-[12px_14px] mb-1">

@@ -34,7 +34,7 @@ export default function FixedModal({ expense, onClose, onSave, onDelete }: Props
 
         <div className="mb-[14px]">
           <label className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.4px] mb-[6px] block">Importe mensual (€)</label>
-          <input className="w-full p-[13px_14px] border-2 border-slate-200 rounded-[13px] text-[22px] font-bold text-indigo-600 outline-none focus:border-indigo-600 bg-white [appearance:none]" type="number" inputMode="decimal" value={amt} onChange={e => setAmt(e.target.value)} placeholder="0,00" />
+          <input className="w-full p-[13px_14px] border-2 border-slate-200 rounded-[13px] text-[22px] font-bold text-indigo-600 outline-none focus:border-indigo-600 bg-white [appearance:none]" type="text" inputMode="decimal" value={amt} onChange={e => setAmt(e.target.value.replace(/[^0-9.,]/g, ''))} placeholder="0,00" />
         </div>
 
         <div className="flex gap-[10px] mt-5">
