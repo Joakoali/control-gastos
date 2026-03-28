@@ -3,6 +3,72 @@ import { CAT_MAP } from '../../constants'
 import { fmt } from '../../utils'
 import type { Expense } from '../../types'
 
+// ── Modal de confirmación de borrado ──────────────────────────────────────────
+interface ConfirmProps {
+  expense:   Expense
+  onConfirm: () => void
+  onCancel:  () => void
+}
+
+function DeleteConfirmModal({ expense, onConfirm, onCancel }: ConfirmProps) {
+  const cat = CAT_MAP[expense.category] || CAT_MAP['otros']
+  return (
+    <div
+      className="fixed inset-0 bg-[rgba(15,10,40,0.6)] z-50 flex items-end backdrop-blur-[4px]"
+      onClick={e => e.target === e.currentTarget && onCancel()}
+    >
+      <div className="bg-white rounded-[28px_28px_0_0] w-full max-w-[480px] mx-auto p-[20px_20px_44px]">
+        <div className="w-9 h-1 bg-slate-200 rounded-[2px] mx-auto mb-[18px]" />
+
+        {/* Icono */}
+        <div className="flex justify-center mb-4">
+          <div className="w-[62px] h-[62px] rounded-[18px] bg-red-50 flex items-center justify-center text-[30px]">
+            🗑️
+          </div>
+        </div>
+
+        {/* Título */}
+        <div className="text-center text-[20px] font-extrabold text-[#1e1b4b] mb-[6px]">
+          ¿Borrar gasto?
+        </div>
+        <div className="text-center text-[14px] text-slate-400 mb-5">
+          Esta acción no se puede deshacer
+        </div>
+
+        {/* Detalle del gasto */}
+        <div className="bg-slate-50 rounded-[14px] p-[13px_14px] flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-[11px] bg-red-100 flex items-center justify-center text-[19px] flex-shrink-0">
+            {cat.emoji}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-semibold text-[#1e1b4b] truncate">{expense.name}</div>
+            <div className="text-[12px] text-slate-400 mt-[1px]">{cat.label}</div>
+          </div>
+          <div className="text-[15px] font-bold text-red-500 whitespace-nowrap">
+            {fmt(expense.amount)}
+          </div>
+        </div>
+
+        {/* Botones */}
+        <div className="flex gap-[10px]">
+          <button
+            className="flex-1 py-[15px] border-2 border-slate-200 rounded-[13px] bg-white text-[15px] font-semibold text-slate-500 cursor-pointer"
+            onClick={onCancel}
+          >
+            Cancelar
+          </button>
+          <button
+            className="flex-[2] py-[15px] border-none rounded-[13px] bg-red-500 text-[15px] font-bold text-white cursor-pointer active:bg-red-600"
+            onClick={onConfirm}
+          >
+            Sí, borrar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const fmtDate = (d: string) => {
   if (!d) return ''
   const [, m, day] = d.split('-')
@@ -47,6 +113,7 @@ function ExpenseItem({ expense, onDelete, onEdit }: ItemProps) {
       <button
         className="bg-transparent border-none text-slate-200 text-[22px] cursor-pointer px-1 py-[2px] transition-colors active:text-red-500 leading-none flex-shrink-0"
         onClick={e => { e.stopPropagation(); onDelete(expense.id) }}
+        aria-label="Borrar gasto"
       >×</button>
     </div>
   )
@@ -60,12 +127,25 @@ interface Props {
 }
 
 export default function VariablesTab({ expenses, totalVar, onDelete, onEdit }: Props) {
-  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
+  const [sortDir,       setSortDir]       = useState<'desc' | 'asc'>('desc')
+  const [pendingDelete, setPendingDelete] = useState<Expense | null>(null)
 
   const sorted = [...expenses].sort((a, b) => {
     const da = a.date || '', db = b.date || ''
     return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db)
   })
+
+  const handleDeleteRequest = (id: string | number) => {
+    const expense = expenses.find(e => e.id === id)
+    if (expense) setPendingDelete(expense)
+  }
+
+  const handleConfirmDelete = () => {
+    if (pendingDelete) {
+      onDelete(pendingDelete.id)
+      setPendingDelete(null)
+    }
+  }
 
   return (
     <>
@@ -89,7 +169,23 @@ export default function VariablesTab({ expenses, totalVar, onDelete, onEdit }: P
           <div className="text-[14px] text-slate-400">Pulsá el botón de abajo para añadir</div>
         </div>
       ) : (
-        sorted.map(e => <ExpenseItem key={String(e.id)} expense={e} onDelete={onDelete} onEdit={onEdit} />)
+        sorted.map(e => (
+          <ExpenseItem
+            key={String(e.id)}
+            expense={e}
+            onDelete={handleDeleteRequest}
+            onEdit={onEdit}
+          />
+        ))
+      )}
+
+      {/* Modal de confirmación */}
+      {pendingDelete && (
+        <DeleteConfirmModal
+          expense={pendingDelete}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </>
   )
