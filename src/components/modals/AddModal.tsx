@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { CATS } from '../../constants'
-import { toFloat, todayStr } from '../../utils'
+import { toFloat } from '../../utils'
 import type { Expense } from '../../types'
 
 interface Props {
@@ -13,7 +13,7 @@ export default function AddModal({ initial, onClose, onSave }: Props) {
   const [name, setName] = useState(initial?.name || '')
   const [amt,  setAmt]  = useState(initial?.amount ? String(initial.amount) : '')
   const [cat,  setCat]  = useState(initial?.category || 'otros')
-  const [date, setDate] = useState(initial?.date || todayStr())
+  const [date, setDate] = useState(initial?.date || new Date().toISOString().split('T')[0])
   const nameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setTimeout(() => nameRef.current?.focus(), 300) }, [])

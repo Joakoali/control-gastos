@@ -8,5 +8,3 @@ export const newId = (): string =>
   `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 export const mkKey = (year: number, month: number): string => `${year}-${month}`
-
-export const todayStr = (): string => new Date().toISOString().split('T')[0]
