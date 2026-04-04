@@ -23,6 +23,7 @@ export interface MonthData {
   incomeSources: IncomeSource[]
   savings: number
   expenses: Expense[]
+  fixedExpenses?: FixedExpense[]
 }
 
 export interface HouseholdData {
