@@ -79,10 +79,15 @@ export function useHousehold(user: User | null | undefined) {
     })
   }, [householdId, householdData])
 
-  const updateFixed = useCallback(async (fixedExpenses: FixedExpense[]) => {
+  const updateMonthFixed = useCallback(async (key: string, fixedExpenses: FixedExpense[]) => {
     if (!householdId) return
-    await updateDoc(doc(db, 'households', householdId), { fixedExpenses })
-  }, [householdId])
+    await updateDoc(doc(db, 'households', householdId), {
+      [`months.${key}`]: {
+        ...(householdData?.months?.[key] || { incomeSources: [], savings: 0, expenses: [] }),
+        fixedExpenses,
+      },
+    })
+  }, [householdId, householdData])
 
   const importHistoricalData = useCallback(async (): Promise<number> => {
     if (!householdId) return 0
@@ -95,5 +100,5 @@ export function useHousehold(user: User | null | undefined) {
     return Object.keys(patch).length
   }, [householdId, householdData])
 
-  return { householdId, householdData, loadingHH, createHousehold, joinHousehold, updateMonth, updateFixed, importHistoricalData }
+  return { householdId, householdData, loadingHH, createHousehold, joinHousehold, updateMonth, updateMonthFixed, importHistoricalData }
 }
