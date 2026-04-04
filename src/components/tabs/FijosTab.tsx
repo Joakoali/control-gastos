@@ -1,21 +1,41 @@
+import { useState } from 'react'
 import { fixedIcon } from '../../constants'
 import { fmt } from '../../utils'
 import type { FixedExpense } from '../../types'
 
 interface Props {
-  fixedExpenses: FixedExpense[]
-  totalFixed:    number
-  onEdit:        (e: FixedExpense) => void
-  onAdd:         () => void
+  fixedExpenses:     FixedExpense[]
+  totalFixed:        number
+  onEdit:            (e: FixedExpense) => void
+  onAdd:             () => void
+  prevFixedExpenses: FixedExpense[]
+  onCopyFromPrev:    () => void
 }
 
-export default function FijosTab({ fixedExpenses, totalFixed, onEdit, onAdd }: Props) {
+export default function FijosTab({ fixedExpenses, totalFixed, onEdit, onAdd, prevFixedExpenses, onCopyFromPrev }: Props) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    onCopyFromPrev()
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <>
       <div className="flex items-center justify-between px-[2px] pt-1">
         <span className="text-[12px] font-bold text-slate-500 uppercase tracking-[0.5px]">Gastos fijos mensuales</span>
         <span className="text-[13px] font-bold text-indigo-600">{fmt(totalFixed)}</span>
       </div>
+
+      {prevFixedExpenses.length > 0 && (
+        <button
+          onClick={handleCopy}
+          className={`w-full py-[10px] px-[14px] border-2 border-dashed border-amber-300 rounded-[12px] text-[14px] font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all ${copied ? 'bg-green-50 text-emerald-600' : 'bg-amber-50 text-amber-700'}`}
+        >
+          {copied ? '✅ Copiado!' : '📋 Copiar fijos del mes anterior'}
+        </button>
+      )}
 
       {fixedExpenses.map(e => (
         <div key={String(e.id)} className="bg-white rounded-2xl p-[13px_14px] flex items-center gap-3 shadow-[0_1px_4px_rgba(79,70,229,0.07)]">
