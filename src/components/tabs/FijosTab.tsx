@@ -16,6 +16,7 @@ export default function FijosTab({ fixedExpenses, totalFixed, onEdit, onAdd, pre
   const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
+    if (fixedExpenses.length > 0 && !window.confirm('¿Reemplazar los fijos de este mes con los del mes anterior? Se perderán los que ya tenés cargados.')) return
     onCopyFromPrev()
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -31,7 +32,7 @@ export default function FijosTab({ fixedExpenses, totalFixed, onEdit, onAdd, pre
       {prevFixedExpenses.length > 0 && (
         <button
           onClick={handleCopy}
-          className={`w-full py-[10px] px-[14px] border-2 border-dashed border-amber-300 rounded-[12px] text-[14px] font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all ${copied ? 'bg-green-50 text-emerald-600' : 'bg-amber-50 text-amber-700'}`}
+          className={`w-full py-[10px] px-[14px] border-2 border-dashed rounded-[12px] text-[14px] font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all ${copied ? 'border-emerald-300 bg-green-50 text-emerald-600' : 'border-amber-300 bg-amber-50 text-amber-700'}`}
         >
           {copied ? '✅ Copiado!' : '📋 Copiar fijos del mes anterior'}
         </button>
