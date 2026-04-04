@@ -18,7 +18,7 @@ import SavingsModal   from './components/modals/SavingsModal'
 
 export default function App() {
   const { user, loading: authLoading, loginWithGoogle, logout } = useAuth()
-  const { householdId, householdData, loadingHH, createHousehold, joinHousehold, updateMonth, updateFixed, importHistoricalData } = useHousehold(user)
+  const { householdId, householdData, loadingHH, createHousehold, joinHousehold, updateMonth, updateMonthFixed, importHistoricalData } = useHousehold(user)
 
   const today = new Date()
   const [curYear,  setCurYear]  = useState(today.getFullYear())
@@ -99,7 +99,8 @@ export default function App() {
 
   const prevMonthKey     = curMonth === 0 ? mkKey(curYear - 1, 11) : mkKey(curYear, curMonth - 1)
   const prevMonthSources = (householdData?.months?.[prevMonthKey]?.incomeSources || []) as IncomeSource[]
-  const fixedExpenses    = householdData?.fixedExpenses || []
+  const fixedExpenses  = (md.fixedExpenses ?? householdData?.fixedExpenses ?? []) as FixedExpense[]
+  const prevMonthFixed = (householdData?.months?.[prevMonthKey]?.fixedExpenses ?? householdData?.fixedExpenses ?? []) as FixedExpense[]
 
   const totalFixed  = fixedExpenses.reduce((s, e) => s + e.amount, 0)
   const totalVar    = md.expenses.reduce((s, e) => s + e.amount, 0)
@@ -115,12 +116,13 @@ export default function App() {
   const saveEditExp = (upd: Expense) => doUpdateMonth({ expenses: md.expenses.map(e => e.id === upd.id ? { ...e, ...upd } : e) })
   const delExpense  = (id: string | number) => doUpdateMonth({ expenses: md.expenses.filter(e => e.id !== id) })
 
-  const saveFixed = (exp: FixedExpense) => {
+  const saveFixed  = (exp: FixedExpense) => {
     const idx     = fixedExpenses.findIndex(e => e.id === exp.id)
     const updated = idx === -1 ? [...fixedExpenses, exp] : fixedExpenses.map(e => e.id === exp.id ? exp : e)
-    updateFixed(updated)
+    updateMonthFixed(key, updated)
   }
-  const delFixed = (id: string | number) => updateFixed(fixedExpenses.filter(e => e.id !== id))
+  const delFixed   = (id: string | number) => updateMonthFixed(key, fixedExpenses.filter(e => e.id !== id))
+  const copyFixed  = () => updateMonthFixed(key, prevMonthFixed.map(e => ({ ...e, id: newId() })))
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -143,7 +145,7 @@ export default function App() {
       {/* Content */}
       <div className="flex-1 p-3 pb-[110px] flex flex-col gap-2">
         {tab === 'variables' && <VariablesTab expenses={md.expenses as Expense[]} totalVar={totalVar} onDelete={delExpense} onEdit={exp => { setEditExp(exp); setShowAdd(true) }} />}
-        {tab === 'fijos'     && <FijosTab fixedExpenses={fixedExpenses} totalFixed={totalFixed} onEdit={setEditFixed} onAdd={() => setAddFixed(true)} />}
+        {tab === 'fijos'     && <FijosTab fixedExpenses={fixedExpenses} totalFixed={totalFixed} onEdit={setEditFixed} onAdd={() => setAddFixed(true)} prevFixedExpenses={prevMonthFixed} onCopyFromPrev={copyFixed} />}
         {tab === 'ingresos'  && <IngresosTab incomeSources={md.incomeSources || []} totalIncome={totalIncome} quedaMes={quedaMes} savings={md.savings} onEditIncome={() => setShowIncome(true)} onEditSavings={() => setShowSavings(true)} />}
       </div>
 
