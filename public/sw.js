@@ -22,11 +22,25 @@ self.addEventListener('activate', e => {
 })
 
 self.addEventListener('fetch', e => {
-  // Solo cachear GET, dejar pasar Firebase/Firestore sin caché
   if (e.request.method !== 'GET') return
   const url = e.request.url
   if (url.includes('firestore') || url.includes('googleapis') || url.includes('firebase')) return
 
+  // HTML → network-first: siempre busca la versión nueva, cae al caché si offline
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone()
+          caches.open(CACHE).then(c => c.put(e.request, clone))
+          return res
+        })
+        .catch(() => caches.match(e.request).then(r => r || caches.match('/index.html')))
+    )
+    return
+  }
+
+  // Assets (JS, CSS, imágenes) → cache-first: los chunks de Vite tienen hashes, nunca son obsoletos
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached
