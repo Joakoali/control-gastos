@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MONTHS } from './constants'
+import { MONTHS, CATS } from './constants'
 import { newId, mkKey } from './utils'
 import { useAuth } from './hooks/useAuth'
 import { useHousehold } from './hooks/useHousehold'
@@ -38,9 +38,13 @@ export default function App() {
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search)
-    const amt = p.get('amount'), name = p.get('name'), cat = p.get('cat')
+    const amt  = p.get('amount')
+    const name = (p.get('name') || '').slice(0, 100)
+    const rawCat = p.get('cat') || ''
+    const validIds = CATS.map(c => c.id)
+    const cat  = validIds.includes(rawCat) ? rawCat : 'otros'
     if (amt) {
-      setEditExp({ name: name || '', amount: parseFloat(amt) || 0, category: cat || 'otros', _auto: true })
+      setEditExp({ name, amount: parseFloat(amt) || 0, category: cat, _auto: true })
       setShowAdd(true)
     }
   }, [])

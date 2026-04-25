@@ -5,3 +5,7 @@ dist
 .env
 .vercel
 .env*.local
+
+# Claude / tooling
+.claude
+docs/superpowers
