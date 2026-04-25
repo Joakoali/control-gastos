@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git -C C:\\\\Users\\\\joako\\\\Desktop\\\\Proyectos\\\\control-gastos add src/types.ts)",
+      "Bash(git -C C:\\\\Users\\\\joako\\\\Desktop\\\\Proyectos\\\\control-gastos commit -m \"feat: add fixedExpenses to MonthData type for per-month storage\")",
+      "Bash(npm run:*)",
+      "Bash(node:*)"
+    ]
+  }
+}
