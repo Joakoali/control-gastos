@@ -28,9 +28,10 @@ export default function HouseholdSetup({ user, onCreate, onJoin }: Props) {
     finally { setLoading(false) }
   }
 
-  const card = 'bg-white/[0.12] rounded-[20px] p-6'
+  const card       = 'bg-white/[0.12] rounded-[20px] p-6'
   const btnPrimary = 'w-full py-[15px] rounded-[14px] text-[16px] font-bold cursor-pointer border-none bg-white text-indigo-700 disabled:opacity-60'
   const btnGhost   = 'w-full py-[15px] rounded-[14px] text-[16px] font-bold cursor-pointer bg-transparent border-2 border-white/60 text-white/80 mt-[10px]'
+  const btnGhostFirst = 'w-full py-[15px] rounded-[14px] text-[16px] font-bold cursor-pointer bg-transparent border-2 border-white/60 text-white/80'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 to-violet-600 px-6 pt-[60px] flex flex-col">
@@ -45,7 +46,7 @@ export default function HouseholdSetup({ user, onCreate, onJoin }: Props) {
       {!mode && (
         <div className="flex flex-col gap-[14px]">
           <button className={btnPrimary} onClick={() => setMode('create')}>🏠 Crear hogar nuevo</button>
-          <button className={btnGhost.replace('mt-[10px]', '')} onClick={() => setMode('join')}>🔗 Unirme con código</button>
+          <button className={btnGhostFirst} onClick={() => setMode('join')}>🔗 Unirme con código</button>
         </div>
       )}
 

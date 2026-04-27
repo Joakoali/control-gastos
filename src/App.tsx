@@ -130,7 +130,6 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <div className="bg-gradient-to-br from-indigo-600 to-violet-600 px-4 pt-[52px] sticky top-0 z-40 shadow-[0_4px_24px_rgba(79,70,229,0.35)]">
         <div className="flex items-center justify-between mb-[14px]">
           <div className="flex items-center gap-[10px]">
@@ -146,18 +145,15 @@ export default function App() {
         <SummaryCard totalIncome={totalIncome} totalVar={totalVar} totalFixed={totalFixed} savings={md.savings} quedaMes={quedaMes} activeTab={tab} onTabChange={setTab} />
       </div>
 
-      {/* Content */}
       <div className="flex-1 p-3 pb-[110px] flex flex-col gap-2">
         {tab === 'variables' && <VariablesTab expenses={md.expenses as Expense[]} totalVar={totalVar} onDelete={delExpense} onEdit={exp => { setEditExp(exp); setShowAdd(true) }} />}
         {tab === 'fijos'     && <FijosTab fixedExpenses={fixedExpenses} totalFixed={totalFixed} onEdit={setEditFixed} onAdd={() => setAddFixed(true)} prevFixedExpenses={prevMonthFixed} onCopyFromPrev={copyFixed} />}
         {tab === 'ingresos'  && <IngresosTab incomeSources={md.incomeSources || []} totalIncome={totalIncome} quedaMes={quedaMes} savings={md.savings} onEditIncome={() => setShowIncome(true)} onEditSavings={() => setShowSavings(true)} />}
       </div>
 
-      {/* FAB */}
       {tab === 'variables' && <button className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gradient-to-br from-indigo-600 to-violet-600 text-white border-none rounded-[26px] py-[15px] px-7 text-[16px] font-bold cursor-pointer shadow-[0_8px_24px_rgba(79,70,229,0.45)] flex items-center gap-[9px] z-30 max-w-[340px] w-[calc(100%-48px)] justify-center whitespace-nowrap active:opacity-90" onClick={() => { setEditExp(null); setShowAdd(true) }}>+ Añadir gasto</button>}
       {tab === 'fijos'     && <button className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gradient-to-br from-indigo-600 to-violet-600 text-white border-none rounded-[26px] py-[15px] px-7 text-[16px] font-bold cursor-pointer shadow-[0_8px_24px_rgba(79,70,229,0.45)] flex items-center gap-[9px] z-30 max-w-[340px] w-[calc(100%-48px)] justify-center whitespace-nowrap active:opacity-90" onClick={() => setAddFixed(true)}>+ Añadir fijo</button>}
 
-      {/* Modals */}
       {showAdd && (
         <AddModal initial={editExp} onClose={() => { setShowAdd(false); setEditExp(null) }}
           onSave={exp => { if (editExp && !editExp._auto) saveEditExp({ ...editExp, ...exp } as Expense); else addExpense(exp) }} />
@@ -173,7 +169,6 @@ export default function App() {
         <SavingsModal savings={md.savings} quedaMes={quedaMes} onClose={() => setShowSavings(false)} onSave={s => doUpdateMonth({ savings: s })} />
       )}
 
-      {/* Account modal */}
       {showCode && (
         <div className="fixed inset-0 bg-[rgba(15,10,40,0.6)] z-50 flex items-end backdrop-blur-[4px]" onClick={e => e.target === e.currentTarget && setShowCode(false)}>
           <div className="bg-white rounded-[28px_28px_0_0] w-full max-w-[480px] mx-auto p-[20px_20px_44px]">

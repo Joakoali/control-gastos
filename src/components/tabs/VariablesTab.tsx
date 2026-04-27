@@ -3,7 +3,6 @@ import { CAT_MAP } from '../../constants'
 import { fmt } from '../../utils'
 import type { Expense } from '../../types'
 
-// ── Modal de confirmación de borrado ──────────────────────────────────────────
 interface ConfirmProps {
   expense:   Expense
   onConfirm: () => void
@@ -20,14 +19,12 @@ function DeleteConfirmModal({ expense, onConfirm, onCancel }: ConfirmProps) {
       <div className="bg-white rounded-[28px_28px_0_0] w-full max-w-[480px] mx-auto p-[20px_20px_44px]">
         <div className="w-9 h-1 bg-slate-200 rounded-[2px] mx-auto mb-[18px]" />
 
-        {/* Icono */}
         <div className="flex justify-center mb-4">
           <div className="w-[62px] h-[62px] rounded-[18px] bg-red-50 flex items-center justify-center text-[30px]">
             🗑️
           </div>
         </div>
 
-        {/* Título */}
         <div className="text-center text-[20px] font-extrabold text-[#1e1b4b] mb-[6px]">
           ¿Borrar gasto?
         </div>
@@ -35,7 +32,6 @@ function DeleteConfirmModal({ expense, onConfirm, onCancel }: ConfirmProps) {
           Esta acción no se puede deshacer
         </div>
 
-        {/* Detalle del gasto */}
         <div className="bg-slate-50 rounded-[14px] p-[13px_14px] flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-[11px] bg-red-100 flex items-center justify-center text-[19px] flex-shrink-0">
             {cat.emoji}
@@ -49,7 +45,6 @@ function DeleteConfirmModal({ expense, onConfirm, onCancel }: ConfirmProps) {
           </div>
         </div>
 
-        {/* Botones */}
         <div className="flex gap-[10px]">
           <button
             className="flex-1 py-[15px] border-2 border-slate-200 rounded-[13px] bg-white text-[15px] font-semibold text-slate-500 cursor-pointer"
@@ -179,7 +174,6 @@ export default function VariablesTab({ expenses, totalVar, onDelete, onEdit }: P
         ))
       )}
 
-      {/* Modal de confirmación */}
       {pendingDelete && (
         <DeleteConfirmModal
           expense={pendingDelete}

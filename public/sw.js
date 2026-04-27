@@ -26,7 +26,7 @@ self.addEventListener('fetch', e => {
   const url = e.request.url
   if (url.includes('firestore') || url.includes('googleapis') || url.includes('firebase')) return
 
-  // HTML → network-first: siempre busca la versión nueva, cae al caché si offline
+  // HTML va siempre a la red primero: así el celu siempre levanta la versión más nueva. Si no hay red, cae al caché.
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request)
@@ -40,7 +40,7 @@ self.addEventListener('fetch', e => {
     return
   }
 
-  // Assets (JS, CSS, imágenes) → cache-first: los chunks de Vite tienen hashes, nunca son obsoletos
+  // Assets van desde caché: los chunks de Vite tienen hash en el nombre, nunca quedan desactualizados.
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached
