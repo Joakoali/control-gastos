@@ -54,12 +54,8 @@ export function useSplits(user: User | null | undefined) {
   }, [user])
 
   const addSplitExpense = useCallback(async (splitId: string, expense: Omit<SplitExpense, 'id'>) => {
-    const ref  = doc(db, 'splits', splitId)
-    const snap = await getDoc(ref)
-    if (!snap.exists()) return
-    const current = snap.data() as Split
     const newExpense: SplitExpense = { ...expense, id: newId() }
-    await updateDoc(ref, { expenses: [...(current.expenses ?? []), newExpense] })
+    await updateDoc(doc(db, 'splits', splitId), { expenses: arrayUnion(newExpense) })
   }, [])
 
   const closeSplit = useCallback(async (splitId: string) => {
@@ -68,7 +64,12 @@ export function useSplits(user: User | null | undefined) {
     const snap = await getDoc(ref)
     if (!snap.exists()) return
     const split = { id: snap.id, ...snap.data() } as Split
+    if (split.status !== 'open') return
+
     const { transfers } = calculateBalances(split.expenses, split.participants)
+
+    // Flip status first — if rules reject it, another caller already closed this split
+    await updateDoc(ref, { status: 'closed' })
 
     for (const p of split.participants) {
       if (p.type !== 'user' || !p.uid) continue
@@ -84,17 +85,19 @@ export function useSplits(user: User | null | undefined) {
         pendingSplitNotifications: arrayUnion(notification),
       })
     }
-    await updateDoc(ref, { status: 'closed' })
   }, [user])
 
   const dismissNotification = useCallback(async (splitId: string) => {
     if (!user) return
-    const ref  = doc(db, 'users', user.uid)
-    const snap = await getDoc(ref)
-    if (!snap.exists()) return
-    const current: SplitNotification[] = snap.data().pendingSplitNotifications ?? []
-    await updateDoc(ref, {
-      pendingSplitNotifications: current.filter(n => n.splitId !== splitId),
+    const { runTransaction } = await import('firebase/firestore')
+    const ref = doc(db, 'users', user.uid)
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(ref)
+      if (!snap.exists()) return
+      const current: SplitNotification[] = snap.data().pendingSplitNotifications ?? []
+      tx.update(ref, {
+        pendingSplitNotifications: current.filter(n => n.splitId !== splitId),
+      })
     })
   }, [user])
 
