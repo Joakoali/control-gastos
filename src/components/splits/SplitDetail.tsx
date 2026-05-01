@@ -27,6 +27,7 @@ export default function SplitDetail({ split, currentUid, onBack, onAddExpense, o
       <div className="flex items-center gap-2 px-0.5 pt-1">
         <button
           onClick={onBack}
+          aria-label="Volver"
           className="bg-transparent border-none text-indigo-600 text-[28px] leading-none cursor-pointer px-1 py-0"
         >
           ‹
@@ -96,7 +97,7 @@ export default function SplitDetail({ split, currentUid, onBack, onAddExpense, o
           ) : (
             <div className="flex flex-col gap-2">
               {transfers.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 text-[14px]">
+                <div key={`${t.from}-${t.to}-${i}`} className="flex items-center gap-2 text-[14px]">
                   <span className="font-semibold text-red-500">{displayName(t.from, split)}</span>
                   <span className="text-slate-400">→</span>
                   <span className="font-semibold text-green-600">{displayName(t.to, split)}</span>

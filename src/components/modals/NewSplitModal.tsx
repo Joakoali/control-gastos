@@ -22,7 +22,7 @@ export default function NewSplitModal({ currentUser, onClose, onSave, onSearchUs
   const addAlias = () => {
     const name = aliasInput.trim()
     if (!name) return
-    if (participants.some(p => p.name === name)) return
+    if (participants.some(p => p.type === 'alias' && p.name.toLowerCase() === name.toLowerCase())) return
     setParticipants(prev => [...prev, { type: 'alias', name }])
     setAliasInput('')
   }
@@ -141,6 +141,7 @@ export default function NewSplitModal({ currentUser, onClose, onSave, onSearchUs
                   {!isMe && (
                     <button
                       onClick={() => remove(key)}
+                      aria-label={`Eliminar ${p.name}`}
                       className="bg-transparent border-none text-slate-300 text-[20px] cursor-pointer leading-none active:text-red-500"
                     >
                       ×

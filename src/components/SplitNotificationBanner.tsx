@@ -48,7 +48,7 @@ export default function SplitNotificationBanner({
               Movimientos
             </div>
             {notification.balances.map((b, i) => (
-              <div key={i} className="text-[13px] text-slate-600 mb-1">
+              <div key={`${b.from}-${b.to}-${i}`} className="text-[13px] text-slate-600 mb-1">
                 <span className="font-semibold text-red-500">{b.from}</span>
                 {' → '}
                 <span className="font-semibold text-green-600">{b.to}</span>
