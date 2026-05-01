@@ -23,15 +23,17 @@ export default function SummaryCard({
   const quedaClass = quedaMes >= 0 ? "text-cyan-300" : "text-red-300";
 
   const chip = (tab: TabType) =>
-    `border-none cursor-pointer bg-white/[0.12] mt-0.5 ml-0.5 rounded-[20px] px-3 py-[7px] whitespace-nowrap flex-shrink-0 text-left transition-all ${
-      activeTab === tab ? "bg-white/30 outline outline-2 outline-white/60" : ""
+    `border-none cursor-pointer mt-0.5 ml-0.5 rounded-[20px] px-3 py-[7px] whitespace-nowrap shrink-0 text-left transition-all ${
+      activeTab === tab
+        ? "bg-white/30 outline outline-2 outline-white/60"
+        : "bg-white/12"
     }`;
 
   return (
-    <div className="bg-white/[0.14] backdrop-blur-[12px] rounded-[18px_18px_0_0] px-4 pt-[14px] border border-white/20 border-b-0">
+    <div className="bg-white/14 backdrop-blur-md rounded-[18px_18px_0_0] px-4 pt-3.5 border border-white/20 border-b-0">
       <div className="flex items-end justify-between mb-3">
         <div>
-          <div className="text-white/[0.72] text-[12px] font-semibold uppercase tracking-[0.5px]">
+          <div className="text-white/72 text-[12px] font-semibold uppercase tracking-[0.5px]">
             Queda este mes
           </div>
           <div
@@ -42,7 +44,7 @@ export default function SummaryCard({
         </div>
         {savings > 0 && (
           <div className="text-right">
-            <div className="text-white/[0.65] text-[11px] font-semibold uppercase tracking-[0.4px]">
+            <div className="text-white/65 text-[11px] font-semibold uppercase tracking-[0.4px]">
               Ahorro total
             </div>
             <div className="text-violet-300 text-[18px] font-extrabold">
@@ -52,23 +54,23 @@ export default function SummaryCard({
         )}
       </div>
 
-      <div className="flex gap-[6px] pb-[14px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-1.5 pb-3.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           className={chip("variables")}
           onClick={() => onTabChange("variables")}
         >
-          <div className="text-white/[0.65] text-[10px] font-semibold uppercase tracking-[0.4px]">
+          <div className="text-white/65 text-[10px] font-semibold uppercase tracking-[0.4px]">
             📊 Variables
           </div>
-          <div className="text-red-300 text-[14px] font-bold mt-[1px]">
+          <div className="text-red-300 text-[14px] font-bold mt-px">
             {fmt(totalVar)}
           </div>
         </button>
         <button className={chip("fijos")} onClick={() => onTabChange("fijos")}>
-          <div className="text-white/[0.65] text-[10px] font-semibold uppercase tracking-[0.4px]">
+          <div className="text-white/65 text-[10px] font-semibold uppercase tracking-[0.4px]">
             📌 Fijos
           </div>
-          <div className="text-red-300 text-[14px] font-bold mt-[1px]">
+          <div className="text-red-300 text-[14px] font-bold mt-px">
             {fmt(totalFixed)}
           </div>
         </button>
@@ -76,18 +78,29 @@ export default function SummaryCard({
           className={chip("ingresos")}
           onClick={() => onTabChange("ingresos")}
         >
-          <div className="text-white/[0.65] text-[10px] font-semibold uppercase tracking-[0.4px]">
+          <div className="text-white/65 text-[10px] font-semibold uppercase tracking-[0.4px]">
             💰 Ingresos
           </div>
-          <div className="text-green-300 text-[14px] font-bold mt-[1px]">
+          <div className="text-green-300 text-[14px] font-bold mt-px">
             {fmt(totalIncome)}
           </div>
         </button>
-        <div className="bg-white/[0.12] rounded-[20px] px-3 py-[7px] whitespace-nowrap flex-shrink-0">
-          <div className="text-white/[0.65] text-[10px] font-semibold uppercase tracking-[0.4px]">
+        <button
+          className={chip("splits")}
+          onClick={() => onTabChange("splits")}
+        >
+          <div className="text-white/65 text-[10px] font-semibold uppercase tracking-[0.4px]">
+            🤝 Splits
+          </div>
+          <div className="text-violet-300 text-[14px] font-bold mt-px">
+            Divisiones
+          </div>
+        </button>
+        <div className="bg-white/12 rounded-[20px] px-3 py-1.75 whitespace-nowrap shrink-0">
+          <div className="text-white/65 text-[10px] font-semibold uppercase tracking-[0.4px]">
             📋 Total gastos
           </div>
-          <div className="text-red-300 text-[14px] font-bold mt-[1px]">
+          <div className="text-red-300 text-[14px] font-bold mt-px">
             {fmt(totalVar + totalFixed)}
           </div>
         </div>

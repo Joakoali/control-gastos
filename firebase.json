@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "gastos",
+      "rules": "firestore.rules"
+    }
+  ]
+}

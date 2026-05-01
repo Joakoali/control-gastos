@@ -1,149 +1,110 @@
 rules_version = '2';
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  Firestore Security Rules – control-gastos (db: "gastos")
-//  Colecciones: users/{uid}  ·  households/{householdId}
-// ══════════════════════════════════════════════════════════════════════════════
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ── Helpers ─────────────────────────────────────────────────────────────
-
-    // El usuario hizo login (Google Auth)
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // El uid autenticado está en el array members del documento
     function isMember(data) {
       return request.auth.uid in data.members;
     }
 
-    // ── /users/{uid} ─────────────────────────────────────────────────────────
-    //
-    //  Cada usuario tiene su propio documento con:
-    //    { householdId: string, displayName: string, email: string }
-    //
-    //  Reglas:
-    //   • Solo el dueño puede leer/escribir su propio perfil.
-    //   • El email guardado debe coincidir con el email del token de Auth.
-    //   • No se permiten campos extra (hasOnly).
-    //   • No se puede borrar.
-
     match /users/{uid} {
-
-      allow read: if isSignedIn()
+      allow get: if isSignedIn()
         && request.auth.uid == uid;
+
+      allow list: if isSignedIn();
 
       allow create, update: if isSignedIn()
         && request.auth.uid == uid
-        // Solo los campos esperados, sin extras
-        && request.resource.data.keys().hasOnly(['householdId', 'displayName', 'email'])
-        // Tipos y valores básicos
+        && request.resource.data.keys().hasOnly([
+          'householdId',
+          'displayName',
+          'email',
+          'pendingSplitNotifications',
+        ])
         && request.resource.data.householdId is string
         && request.resource.data.householdId.size() > 0
         && request.resource.data.householdId.size() <= 20
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() <= 150
         && request.resource.data.email is string
-        // El email debe ser el del token de Firebase Auth (no se puede mentir)
         && request.resource.data.email == request.auth.token.email;
 
-      // delete: denegado implícitamente (no hay regla allow)
+      allow update: if isSignedIn()
+        && request.auth.uid != uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'pendingSplitNotifications',
+        ]);
     }
 
-
-    // ── /households/{householdId} ────────────────────────────────────────────
-    //
-    //  Estructura del documento:
-    //    {
-    //      code:          string            (= householdId, es el "código de invitación")
-    //      createdBy:     string            (uid del creador)
-    //      members:       string[]          (uids de los miembros)
-    //      fixedExpenses: FixedExpense[]    (gastos fijos)
-    //      months:        map               (datos mensuales)
-    //    }
-    //
-    //  Hay tres operaciones de escritura distintas con reglas diferentes:
-    //    1. CREATE  – el usuario crea un hogar nuevo
-    //    2. UPDATE  – un miembro existente modifica months o fixedExpenses
-    //    3. JOIN    – un no-miembro se agrega a sí mismo al array members
-
     match /households/{householdId} {
-
-      // ── Leer ──────────────────────────────────────────────────────────────
-      // Solo los miembros del hogar pueden leer el documento.
       allow read: if isSignedIn()
         && isMember(resource.data);
 
-
-      // ── Crear hogar ───────────────────────────────────────────────────────
-      // El creador debe incluirse como único miembro inicial y como createdBy.
-      // fixedExpenses y months deben empezar vacíos.
       allow create: if isSignedIn()
-        // Solo los campos esperados
-        && request.resource.data.keys().hasOnly(['code', 'members', 'createdBy', 'fixedExpenses', 'months'])
-        // El campo code debe coincidir con el ID del documento
+        && request.resource.data.keys().hasOnly([
+          'code',
+          'members',
+          'createdBy',
+          'fixedExpenses',
+          'months',
+        ])
         && request.resource.data.code == householdId
         && request.resource.data.code is string
-        // El creador debe ser el usuario autenticado
         && request.resource.data.createdBy == request.auth.uid
-        // Al crear, el único miembro es el propio creador
         && request.resource.data.members is list
         && request.resource.data.members.size() == 1
         && request.resource.data.members[0] == request.auth.uid
-        // Empieza vacío
         && request.resource.data.fixedExpenses is list
         && request.resource.data.fixedExpenses.size() == 0
         && request.resource.data.months is map;
 
-
-      // ── Actualizar como miembro ───────────────────────────────────────────
-      // Un miembro existente puede modificar months y fixedExpenses.
-      // Los campos inmutables (code, createdBy, members) NO pueden cambiar.
       allow update: if isSignedIn()
         && isMember(resource.data)
-        // Campos inmutables protegidos
-        && request.resource.data.code      == resource.data.code
+        && request.resource.data.code == resource.data.code
         && request.resource.data.createdBy == resource.data.createdBy
-        && request.resource.data.members   == resource.data.members
-        // Tipos válidos en los campos modificables
+        && request.resource.data.members == resource.data.members
         && request.resource.data.fixedExpenses is list
-        && request.resource.data.fixedExpenses.size() <= 200   // límite anti-abuso
+        && request.resource.data.fixedExpenses.size() <= 200
         && request.resource.data.months is map;
 
-
-      // ── Unirse al hogar (join) ────────────────────────────────────────────
-      // Un usuario NO miembro puede agregarse a sí mismo al array members.
-      // Solo puede cambiar el campo members; todo lo demás queda igual.
-      // La prueba matemática garantiza que el único elemento agregado es el uid propio:
-      //   • El usuario NO estaba antes en members           → no puede estar en la lista vieja
-      //   • La lista nueva tiene exactamente +1 elemento    → solo se agregó uno
-      //   • La lista nueva contiene todos los anteriores    → nadie fue removido
-      //   • El uid propio está en la lista nueva            → ese +1 es el usuario actual
       allow update: if isSignedIn()
         && !(request.auth.uid in resource.data.members)
-        // Solo members cambia; todo lo demás es idéntico
-        && request.resource.data.code          == resource.data.code
-        && request.resource.data.createdBy     == resource.data.createdBy
+        && request.resource.data.code == resource.data.code
+        && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.fixedExpenses == resource.data.fixedExpenses
-        && request.resource.data.months        == resource.data.months
-        // Validación del array members
+        && request.resource.data.months == resource.data.months
         && request.resource.data.members is list
-        && request.resource.data.members.hasAll(resource.data.members)    // nadie fue removido
-        && request.resource.data.members.size() == resource.data.members.size() + 1  // exactamente +1
-        && request.auth.uid in request.resource.data.members;             // ese +1 es el usuario actual
-
-      // delete: denegado implícitamente
+        && request.resource.data.members.hasAll(resource.data.members)
+        && request.resource.data.members.size() == resource.data.members.size() + 1
+        && request.auth.uid in request.resource.data.members;
     }
 
+    match /splits/{splitId} {
+      allow read: if isSignedIn()
+        && request.auth.uid in resource.data.participantUids;
 
-    // ── Catch-all: denegar todo lo demás ─────────────────────────────────────
-    // Cualquier otra colección o documento no mencionado arriba queda bloqueado.
+      allow create: if isSignedIn()
+        && request.auth.uid in request.resource.data.participantUids;
+
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.participantUids
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.status == resource.data.status;
+
+      allow update: if isSignedIn()
+        && request.auth.uid == resource.data.createdBy
+        && resource.data.status == 'open'
+        && request.resource.data.status == 'closed';
+
+      allow delete: if isSignedIn()
+        && request.auth.uid in resource.data.participantUids;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
-
   }
 }

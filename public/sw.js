@@ -23,8 +23,10 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return
-  const url = e.request.url
-  if (url.includes('firestore') || url.includes('googleapis') || url.includes('firebase')) return
+  const url = new URL(e.request.url)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return
+  const href = url.href
+  if (href.includes('firestore') || href.includes('googleapis') || href.includes('firebase')) return
 
   // HTML va siempre a la red primero: así el celu siempre levanta la versión más nueva. Si no hay red, cae al caché.
   if (e.request.mode === 'navigate') {

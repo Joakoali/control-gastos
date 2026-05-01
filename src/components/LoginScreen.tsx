@@ -5,7 +5,7 @@ interface Props {
 
 export default function LoginScreen({ onLogin, error }: Props) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-violet-600 px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-indigo-600 to-violet-600 px-6">
       <div className="text-[72px] mb-4">💰</div>
       <h1 className="text-white text-[28px] font-extrabold mb-2 text-center">Gastos Familiares</h1>
       <p className="text-white/75 text-[15px] mb-12 text-center">
