@@ -130,8 +130,9 @@ export default function AddSplitExpenseModal({ split, currentUid, onClose, onSav
             Cancelar
           </button>
           <button
-            className="flex-2 py-3.75 border-none rounded-[13px] bg-linear-to-br from-indigo-600 to-violet-600 text-[15px] font-bold text-white cursor-pointer"
+            className="flex-2 py-3.75 border-none rounded-[13px] bg-linear-to-br from-indigo-600 to-violet-600 text-[15px] font-bold text-white cursor-pointer disabled:opacity-50"
             onClick={save}
+            disabled={!description.trim() || toFloat(amt) <= 0 || splitAmong.length === 0}
           >
             Guardar
           </button>
