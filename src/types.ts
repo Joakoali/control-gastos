@@ -54,6 +54,7 @@ export interface SplitExpense {
   id: string
   description: string
   amount: number
+  date?: string        // ISO date string, optional for backwards compat
   paidBy: string       // uid for users, name for aliases
   splitAmong: string[] // uids for users, names for aliases
 }
