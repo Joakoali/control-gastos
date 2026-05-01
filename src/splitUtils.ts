@@ -1,6 +1,7 @@
 import type { SplitExpense, SplitParticipant, SplitBalance } from './types'
 
 export function participantKey(p: SplitParticipant): string {
+  if (p.type === 'user' && !p.uid) throw new Error(`User participant "${p.name}" is missing uid`)
   return p.type === 'user' ? p.uid! : p.name
 }
 
