@@ -4,7 +4,7 @@ import { newId, mkKey } from "./utils";
 import { useAuth } from "./hooks/useAuth";
 import { useHousehold } from "./hooks/useHousehold";
 import { useSplits } from "./hooks/useSplits";
-import type { TabType, Expense, FixedExpense, IncomeSource, Split } from "./types";
+import type { TabType, Expense, FixedExpense, IncomeSource, SplitExpense } from "./types";
 
 import LoginScreen from "./components/LoginScreen";
 import HouseholdSetup from "./components/HouseholdSetup";
@@ -20,6 +20,7 @@ import IncomeModal from "./components/modals/IncomeModal";
 import SavingsModal from "./components/modals/SavingsModal";
 import NewSplitModal from "./components/modals/NewSplitModal";
 import AddSplitExpenseModal from "./components/modals/AddSplitExpenseModal";
+import AddSplitParticipantsModal from "./components/modals/AddSplitParticipantsModal";
 import SplitNotificationBanner from "./components/SplitNotificationBanner";
 
 export default function App() {
@@ -40,6 +41,10 @@ export default function App() {
     pendingNotifications,
     createSplit,
     addSplitExpense,
+    updateSplitExpense,
+    deleteSplitExpense,
+    deleteSplit,
+    addSplitParticipants,
     closeSplit,
     dismissNotification,
     searchUserByEmail,
@@ -61,9 +66,11 @@ export default function App() {
   const [showSavings, setShowSavings] = useState(false);
   const [showCode, setShowCode] = useState(false);
 
-  const [selectedSplit, setSelectedSplit] = useState<Split | null>(null);
+  const [selectedSplitId, setSelectedSplitId] = useState<string | null>(null);
   const [showNewSplit, setShowNewSplit] = useState(false);
   const [showAddSplitExp, setShowAddSplitExp] = useState(false);
+  const [showAddSplitParticipants, setShowAddSplitParticipants] = useState(false);
+  const [editSplitExp, setEditSplitExp] = useState<SplitExpense | null>(null);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -91,7 +98,8 @@ export default function App() {
     !!editFixed ||
     addFixed ||
     showNewSplit ||
-    showAddSplitExp;
+    showAddSplitExp ||
+    showAddSplitParticipants;
 
   useEffect(() => {
     window.history.replaceState({ type: "app-root" }, "");
@@ -132,10 +140,15 @@ export default function App() {
       }
       if (showAddSplitExp) {
         setShowAddSplitExp(false);
+        setEditSplitExp(null);
         return;
       }
-      if (selectedSplit) {
-        setSelectedSplit(null);
+      if (showAddSplitParticipants) {
+        setShowAddSplitParticipants(false);
+        return;
+      }
+      if (selectedSplitId) {
+        setSelectedSplitId(null);
         return;
       }
       window.history.pushState({ type: "app-guard" }, "");
@@ -151,7 +164,8 @@ export default function App() {
     showCode,
     showNewSplit,
     showAddSplitExp,
-    selectedSplit,
+    showAddSplitParticipants,
+    selectedSplitId,
   ]);
 
   if (authLoading || loadingHH) {
@@ -216,6 +230,9 @@ export default function App() {
   const quedaMes = totalIncome - totalFixed - totalVar;
 
   const doUpdateMonth = (patch: object) => updateMonth(key, patch);
+  const selectedSplit = selectedSplitId
+    ? splits.find((split) => split.id === selectedSplitId) ?? null
+    : null;
 
   const prevMonth = () => {
     if (curMonth === 0) {
@@ -336,7 +353,7 @@ export default function App() {
           activeTab={tab}
           onTabChange={(t) => {
             setTab(t);
-            setSelectedSplit(null);
+            setSelectedSplitId(null);
           }}
         />
       </div>
@@ -374,14 +391,32 @@ export default function App() {
           />
         )}
         {tab === "splits" && !selectedSplit && (
-          <SplitsTab splits={splits} onSelect={setSelectedSplit} />
+          <SplitsTab
+            splits={splits}
+            onSelect={(split) => setSelectedSplitId(split.id)}
+          />
         )}
         {tab === "splits" && selectedSplit && (
           <SplitDetail
             split={selectedSplit}
             currentUid={user.uid}
-            onBack={() => setSelectedSplit(null)}
-            onAddExpense={() => setShowAddSplitExp(true)}
+            onBack={() => setSelectedSplitId(null)}
+            onAddParticipant={() => setShowAddSplitParticipants(true)}
+            onAddExpense={() => {
+              setEditSplitExp(null);
+              setShowAddSplitExp(true);
+            }}
+            onEditExpense={(expense) => {
+              setEditSplitExp(expense);
+              setShowAddSplitExp(true);
+            }}
+            onDeleteExpense={(expenseId) =>
+              deleteSplitExpense(selectedSplit.id, expenseId)
+            }
+            onDeleteSplit={() => {
+              deleteSplit(selectedSplit.id);
+              setSelectedSplitId(null);
+            }}
             onClose={() => closeSplit(selectedSplit.id)}
           />
         )}
@@ -468,14 +503,34 @@ export default function App() {
         <AddSplitExpenseModal
           split={selectedSplit}
           currentUid={user.uid}
-          onClose={() => setShowAddSplitExp(false)}
-          onSave={(exp) => addSplitExpense(selectedSplit.id, exp)}
+          initial={editSplitExp}
+          onClose={() => {
+            setShowAddSplitExp(false);
+            setEditSplitExp(null);
+          }}
+          onSave={(exp) => {
+            if ("id" in exp) updateSplitExpense(selectedSplit.id, exp);
+            else addSplitExpense(selectedSplit.id, exp);
+          }}
+        />
+      )}
+      {showAddSplitParticipants && selectedSplit && (
+        <AddSplitParticipantsModal
+          split={selectedSplit}
+          onClose={() => setShowAddSplitParticipants(false)}
+          onSearchUser={searchUserByEmail}
+          onSave={(participants) =>
+            addSplitParticipants(selectedSplit.id, participants)
+          }
         />
       )}
 
       {pendingNotifications.length > 0 && (
         <SplitNotificationBanner
           notification={pendingNotifications[0]}
+          split={splits.find(
+            (split) => split.id === pendingNotifications[0].splitId,
+          )}
           currentYear={curYear}
           currentMonth={curMonth}
           onAdd={handleAddSplitExpenseToMonth}

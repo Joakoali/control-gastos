@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { CATS, MONTHS } from '../constants'
 import { fmt, mkKey } from '../utils'
-import type { SplitNotification } from '../types'
+import { participantKey } from '../splitUtils'
+import type { Split, SplitNotification } from '../types'
 
 interface Props {
   notification: SplitNotification
+  split?: Split
   currentYear: number
   currentMonth: number
   onAdd: (splitId: string, monthKey: string, category: string) => void
@@ -13,6 +15,7 @@ interface Props {
 
 export default function SplitNotificationBanner({
   notification,
+  split,
   currentYear,
   currentMonth,
   onAdd,
@@ -23,6 +26,14 @@ export default function SplitNotificationBanner({
   const [selMonth, setSelMonth] = useState(currentMonth)
 
   const hasExpense = notification.netAmount > 0
+  const participantNames =
+    notification.participantNames ??
+    split?.participants.reduce<Record<string, string>>((acc, p) => {
+      acc[participantKey(p)] = p.name
+      return acc
+    }, {}) ??
+    {}
+  const displayName = (key: string) => participantNames[key] ?? key
 
   return (
     <div className="fixed inset-0 bg-[rgba(15,10,40,0.6)] z-50 flex items-end backdrop-blur-xs">
@@ -49,9 +60,9 @@ export default function SplitNotificationBanner({
             </div>
             {notification.balances.map((b, i) => (
               <div key={`${b.from}-${b.to}-${i}`} className="text-[13px] text-slate-600 mb-1">
-                <span className="font-semibold text-red-500">{b.from}</span>
+                <span className="font-semibold text-red-500">{displayName(b.from)}</span>
                 {' → '}
-                <span className="font-semibold text-green-600">{b.to}</span>
+                <span className="font-semibold text-green-600">{displayName(b.to)}</span>
                 {'  '}
                 <span className="font-bold text-[#1e1b4b]">{fmt(b.amount)}</span>
               </div>

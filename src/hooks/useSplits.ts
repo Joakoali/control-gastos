@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   collection, doc, addDoc, updateDoc, getDoc, getDocs,
-  query, where, onSnapshot, arrayUnion,
+  query, where, onSnapshot, arrayUnion, deleteDoc, runTransaction,
 } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import { db } from '../firebase'
@@ -58,6 +58,64 @@ export function useSplits(user: User | null | undefined) {
     await updateDoc(doc(db, 'splits', splitId), { expenses: arrayUnion(newExpense) })
   }, [])
 
+  const updateSplitExpense = useCallback(async (splitId: string, expense: SplitExpense) => {
+    const ref = doc(db, 'splits', splitId)
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(ref)
+      if (!snap.exists()) return
+      const split = snap.data() as Split
+      tx.update(ref, {
+        expenses: split.expenses.map(exp => exp.id === expense.id ? expense : exp),
+      })
+    })
+  }, [])
+
+  const deleteSplitExpense = useCallback(async (splitId: string, expenseId: string) => {
+    const ref = doc(db, 'splits', splitId)
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(ref)
+      if (!snap.exists()) return
+      const split = snap.data() as Split
+      tx.update(ref, {
+        expenses: split.expenses.filter(exp => exp.id !== expenseId),
+      })
+    })
+  }, [])
+
+  const deleteSplit = useCallback(async (splitId: string) => {
+    await deleteDoc(doc(db, 'splits', splitId))
+  }, [])
+
+  const addSplitParticipants = useCallback(async (
+    splitId: string,
+    participantsToAdd: SplitParticipant[],
+  ) => {
+    const ref = doc(db, 'splits', splitId)
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(ref)
+      if (!snap.exists()) return
+      const split = snap.data() as Split
+      if (split.status !== 'open') return
+
+      const currentKeys = new Set(split.participants.map(participantKey))
+      const participants = [...split.participants]
+
+      for (const participant of participantsToAdd) {
+        if (currentKeys.has(participantKey(participant))) continue
+        participants.push(participant)
+        currentKeys.add(participantKey(participant))
+      }
+
+      const participantUids = Array.from(new Set(
+        participants
+          .filter(p => p.type === 'user' && p.uid)
+          .map(p => p.uid!),
+      ))
+
+      tx.update(ref, { participants, participantUids })
+    })
+  }, [])
+
   const closeSplit = useCallback(async (splitId: string) => {
     if (!user) return
     const ref  = doc(db, 'splits', splitId)
@@ -67,6 +125,10 @@ export function useSplits(user: User | null | undefined) {
     if (split.status !== 'open') return
 
     const { transfers } = calculateBalances(split.expenses, split.participants)
+    const participantNames = split.participants.reduce<Record<string, string>>((acc, p) => {
+      acc[participantKey(p)] = p.name
+      return acc
+    }, {})
 
     // Flip status first — if rules reject it, another caller already closed this split
     await updateDoc(ref, { status: 'closed' })
@@ -80,6 +142,7 @@ export function useSplits(user: User | null | undefined) {
         title:    split.title,
         netAmount,
         balances: transfers,
+        participantNames,
       }
       await updateDoc(doc(db, 'users', p.uid), {
         pendingSplitNotifications: arrayUnion(notification),
@@ -89,7 +152,6 @@ export function useSplits(user: User | null | undefined) {
 
   const dismissNotification = useCallback(async (splitId: string) => {
     if (!user) return
-    const { runTransaction } = await import('firebase/firestore')
     const ref = doc(db, 'users', user.uid)
     await runTransaction(db, async tx => {
       const snap = await tx.get(ref)
@@ -114,6 +176,10 @@ export function useSplits(user: User | null | undefined) {
     pendingNotifications,
     createSplit,
     addSplitExpense,
+    updateSplitExpense,
+    deleteSplitExpense,
+    deleteSplit,
+    addSplitParticipants,
     closeSplit,
     dismissNotification,
     searchUserByEmail,

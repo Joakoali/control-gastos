@@ -6,18 +6,19 @@ import type { Split, SplitExpense } from '../../types'
 interface Props {
   split: Split
   currentUid: string
+  initial?: SplitExpense | null
   onClose: () => void
-  onSave: (expense: Omit<SplitExpense, 'id'>) => void
+  onSave: (expense: Omit<SplitExpense, 'id'> | SplitExpense) => void
 }
 
-export default function AddSplitExpenseModal({ split, currentUid, onClose, onSave }: Props) {
+export default function AddSplitExpenseModal({ split, currentUid, initial = null, onClose, onSave }: Props) {
   const allKeys = split.participants.map(participantKey)
-  const [description, setDescription] = useState('')
-  const [amt, setAmt]                 = useState('')
+  const [description, setDescription] = useState(initial?.description ?? '')
+  const [amt, setAmt]                 = useState(initial ? String(initial.amount).replace('.', ',') : '')
   const [paidBy, setPaidBy]           = useState(
-    allKeys.includes(currentUid) ? currentUid : allKeys[0]
+    initial?.paidBy ?? (allKeys.includes(currentUid) ? currentUid : allKeys[0])
   )
-  const [splitAmong, setSplitAmong]   = useState<string[]>(allKeys)
+  const [splitAmong, setSplitAmong]   = useState<string[]>(initial?.splitAmong ?? allKeys)
 
   const toggle = (key: string) =>
     setSplitAmong(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key])
@@ -25,7 +26,13 @@ export default function AddSplitExpenseModal({ split, currentUid, onClose, onSav
   const save = () => {
     const amount = toFloat(amt)
     if (!description.trim() || amount <= 0 || splitAmong.length === 0) return
-    onSave({ description: description.trim(), amount, paidBy, splitAmong })
+    const payload = {
+      description: description.trim(),
+      amount,
+      paidBy,
+      splitAmong,
+    }
+    onSave(initial ? { ...payload, id: initial.id } : payload)
     onClose()
   }
 
@@ -36,7 +43,9 @@ export default function AddSplitExpenseModal({ split, currentUid, onClose, onSav
     >
       <div className="bg-white rounded-[28px_28px_0_0] w-full max-w-120 mx-auto p-[20px_20px_44px] max-h-[92vh] overflow-y-auto">
         <div className="w-9 h-1 bg-slate-200 rounded-xs mx-auto mb-4.5" />
-        <div className="text-[21px] font-extrabold text-[#1e1b4b] mb-4.5">+ Agregar gasto</div>
+        <div className="text-[21px] font-extrabold text-[#1e1b4b] mb-4.5">
+          {initial ? 'Editar gasto' : '+ Agregar gasto'}
+        </div>
 
         {/* Description */}
         <div className="mb-3.5">
@@ -134,7 +143,7 @@ export default function AddSplitExpenseModal({ split, currentUid, onClose, onSav
             onClick={save}
             disabled={!description.trim() || toFloat(amt) <= 0 || splitAmong.length === 0}
           >
-            Guardar
+            {initial ? 'Guardar cambios' : 'Guardar'}
           </button>
         </div>
       </div>

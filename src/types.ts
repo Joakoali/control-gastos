@@ -81,4 +81,5 @@ export interface SplitNotification {
   title: string
   netAmount: number    // user's real share of expenses (always >= 0)
   balances: SplitBalance[]
+  participantNames?: Record<string, string>
 }
