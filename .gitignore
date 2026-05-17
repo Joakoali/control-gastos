@@ -9,6 +9,9 @@ dist
 .vscode
 .idea
 
+# Firebase service account credentials (NEVER commit)
+*firebase-adminsdk*.json
+
 # Claude / superpowers
 .claude
 docs/superpowers
