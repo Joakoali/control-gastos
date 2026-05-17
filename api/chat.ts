@@ -21,9 +21,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'bad_request' });
   }
   if (messages.length > 50) return res.status(400).json({ error: 'too_many_messages' });
-  if (messages.some((m: unknown) => typeof (m as { content?: unknown }).content !== 'string' || (m as { content: string }).content.length > 4000)) {
-    return res.status(400).json({ error: 'message_too_long' });
-  }
+
+  const ALLOWED_ROLES = new Set(['user', 'assistant']);
+  type RawMsg = { role?: unknown; content?: unknown };
+  const invalid = messages.some((m: unknown) => {
+    const msg = m as RawMsg;
+    if (!ALLOWED_ROLES.has(msg.role as string)) return true;
+    if (typeof msg.content !== 'string') return true;
+    if (msg.role === 'user' && msg.content.length > 4000) return true;
+    return false;
+  });
+  if (invalid) return res.status(400).json({ error: 'bad_request' });
 
   const householdPayload = await loadHouseholdData(decoded.uid);
   if (!householdPayload) return res.status(400).json({ error: 'no_household' });
@@ -33,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
 
   try {
     await streamFromDeepSeek({

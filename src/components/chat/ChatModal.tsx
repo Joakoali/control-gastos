@@ -27,7 +27,7 @@ export default function ChatModal({ onClose }: Props) {
             <span className="font-bold text-slate-800">Asistente</span>
           </div>
           <div className="flex items-center gap-1">
-            {messages.length > 0 && (
+            {messages.length > 0 && !streaming && (
               <button
                 onClick={clear}
                 className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100"

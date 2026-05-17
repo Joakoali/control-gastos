@@ -110,9 +110,14 @@ function DonutChart({ title, data, format }: DonutChartData) {
       {title && <div className="text-sm font-bold text-slate-700 mb-3">{title}</div>}
       <div className="flex items-center gap-5">
         <svg viewBox="0 0 100 100" className="w-24 h-24 shrink-0">
-          {segments.map((s, i) => (
-            <path key={i} d={s.path} fill={s.color} />
-          ))}
+          {data.length === 1 ? (
+            <>
+              <circle cx={cx} cy={cy} r={R} fill={PALETTE[0]} />
+              <circle cx={cx} cy={cy} r={r} fill="white" />
+            </>
+          ) : (
+            segments.map((s, i) => <path key={i} d={s.path} fill={s.color} />)
+          )}
         </svg>
         <div className="flex flex-col gap-2">
           {segments.map(s => (

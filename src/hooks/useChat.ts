@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { auth } from '../firebase';
 
 export interface Message {
@@ -24,10 +24,19 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
 
   async function send(content: string) {
     if (!content.trim() || streaming) return;
     setError(null);
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     const userMsg: Message = { role: 'user', content };
     const assistantMsg: Message = { role: 'assistant', content: '' };
@@ -35,9 +44,16 @@ export function useChat() {
     setMessages([...history, assistantMsg]);
     setStreaming(true);
 
+    if (!auth.currentUser) {
+      setError(mapError('no_token'));
+      setStreaming(false);
+      setMessages(prev => prev.slice(0, -1));
+      return;
+    }
+
     let idToken: string;
     try {
-      idToken = await auth.currentUser!.getIdToken();
+      idToken = await auth.currentUser.getIdToken();
     } catch {
       setError(mapError('no_token'));
       setStreaming(false);
@@ -49,13 +65,15 @@ export function useChat() {
     try {
       res = await fetch('/api/chat', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           Authorization: `Bearer ${idToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ messages: history }),
       });
-    } catch {
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') { setStreaming(false); return; }
       setError(mapError('network'));
       setStreaming(false);
       setMessages(prev => prev.slice(0, -1));
@@ -94,6 +112,7 @@ export function useChat() {
               setMessages(prev => {
                 const updated = [...prev];
                 const last = updated[updated.length - 1];
+                if (!last) return prev;
                 updated[updated.length - 1] = { ...last, content: last.content + json.delta };
                 return updated;
               });
@@ -102,16 +121,18 @@ export function useChat() {
           } catch { /* ignore malformed */ }
         }
       }
-    } catch {
-      setError(mapError('model_error'));
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') setError(mapError('model_error'));
     } finally {
       setStreaming(false);
     }
   }
 
   function clear() {
+    abortRef.current?.abort();
     setMessages([]);
     setError(null);
+    setStreaming(false);
   }
 
   return { messages, streaming, error, send, clear };
