@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyIdToken, checkAiAccess, loadHouseholdData } from './_lib/auth';
-import { buildSystemPrompt } from './_lib/promptBuilder';
-import { streamFromDeepSeek } from './_lib/deepseek';
+import { verifyIdToken, checkAiAccess, loadHouseholdData } from './_lib/auth.js';
+import { buildSystemPrompt } from './_lib/promptBuilder.js';
+import { streamFromDeepSeek } from './_lib/deepseek.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();

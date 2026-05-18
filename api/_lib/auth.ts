@@ -1,6 +1,6 @@
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getAdminApp } from './firebaseAdmin';
+import { getAdminApp } from './firebaseAdmin.js';
 
 function db() {
   return getFirestore(getAdminApp(), process.env.FIREBASE_DATABASE_ID ?? 'gastos');
