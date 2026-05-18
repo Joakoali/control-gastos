@@ -4,6 +4,7 @@ import { newId, mkKey } from "./utils";
 import { useAuth } from "./hooks/useAuth";
 import { useHousehold } from "./hooks/useHousehold";
 import { useSplits } from "./hooks/useSplits";
+import { useAiAccess } from "./hooks/useAiAccess";
 import type { TabType, Expense, FixedExpense, IncomeSource, SplitExpense } from "./types";
 
 import LoginScreen from "./components/LoginScreen";
@@ -22,6 +23,7 @@ import NewSplitModal from "./components/modals/NewSplitModal";
 import AddSplitExpenseModal from "./components/modals/AddSplitExpenseModal";
 import AddSplitParticipantsModal from "./components/modals/AddSplitParticipantsModal";
 import SplitNotificationBanner from "./components/SplitNotificationBanner";
+import ChatModal from "./components/chat/ChatModal";
 
 export default function App() {
   const { user, loading: authLoading, loginWithGoogle, logout } = useAuth();
@@ -35,6 +37,9 @@ export default function App() {
     updateMonthFixed,
     importHistoricalData,
   } = useHousehold(user);
+
+  const aiAccess = useAiAccess(user?.uid ?? '');
+  const [showChat, setShowChat] = useState(false);
 
   const {
     splits,
@@ -328,6 +333,15 @@ export default function App() {
             </button>
           </div>
           <div className="flex gap-2">
+            {aiAccess && (
+              <button
+                className="bg-white/18 border-none rounded-full w-8.5 h-8.5 text-white text-[17px] cursor-pointer flex items-center justify-center"
+                title="Asistente IA"
+                onClick={() => setShowChat(true)}
+              >
+                🤖
+              </button>
+            )}
             <button
               className="bg-white/18 border-none rounded-full w-8.5 h-8.5 text-white text-[17px] cursor-pointer flex items-center justify-center"
               title="Ahorro"
@@ -537,6 +551,8 @@ export default function App() {
           onDismiss={dismissNotification}
         />
       )}
+
+      {showChat && <ChatModal onClose={() => setShowChat(false)} />}
 
       {showCode && (
         <div
