@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { fixedIcon } from "../../constants";
 import { fmt } from "../../utils";
 import type { FixedExpense } from "../../types";
@@ -8,8 +7,6 @@ interface Props {
   totalFixed: number;
   onEdit: (e: FixedExpense) => void;
   onAdd: () => void;
-  prevFixedExpenses: FixedExpense[];
-  onCopyFromPrev: () => void;
 }
 
 export default function FijosTab({
@@ -17,24 +14,7 @@ export default function FijosTab({
   totalFixed,
   onEdit,
   onAdd,
-  prevFixedExpenses,
-  onCopyFromPrev,
 }: Props) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    if (
-      fixedExpenses.length > 0 &&
-      !window.confirm(
-        "¿Reemplazar los fijos de este mes con los del mes anterior? Se perderán los que ya tenés cargados.",
-      )
-    )
-      return;
-    onCopyFromPrev();
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <>
       <div className="flex items-center justify-between px-0.5 pt-1">
@@ -45,15 +25,6 @@ export default function FijosTab({
           {fmt(totalFixed)}
         </span>
       </div>
-
-      {prevFixedExpenses.length > 0 && (
-        <button
-          onClick={handleCopy}
-          className={`w-full py-2.5 px-3.5 border-2 border-dashed rounded-xl text-[14px] font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all ${copied ? "border-emerald-300 bg-green-50 text-emerald-600" : "border-amber-300 bg-amber-50 text-amber-700"}`}
-        >
-          {copied ? "✅ Copiado!" : "📋 Copiar fijos del mes anterior"}
-        </button>
-      )}
 
       {fixedExpenses.map((e) => (
         <div
