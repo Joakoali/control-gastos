@@ -57,7 +57,7 @@ export function resolveRunningBalance(
 
   for (const key of keys) {
     const m = months[key]
-    if (m.savings !== undefined) {
+    if (m.savings !== undefined && m.savings !== null) {
       balance = m.savings
       prevQuedaMes = 0
     } else {
@@ -73,6 +73,10 @@ export function resolveRunningBalance(
       const expenses = m.expenses.reduce((s, e) => s + e.amount, 0)
       prevQuedaMes = income - fixed - expenses
     }
+  }
+
+  if (!(targetKey in months)) {
+    balance += prevQuedaMes
   }
 
   return balance

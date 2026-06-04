@@ -151,4 +151,25 @@ describe('resolveRunningBalance', () => {
     };
     expect(resolveRunningBalance(months, '2025-4')).toBe(3900);
   });
+
+  it('incluye el quedaMes del último mes cuando el target no está en el mapa', () => {
+    // 2025-4 has savings=1000, income=2000, expenses=500 → quedaMes=1500
+    // 2025-5 NOT in months → balance should be 1000 + 1500 = 2500
+    const months = {
+      '2025-4': mk({
+        savings: 1000,
+        incomeSources: [{ id: 'i1', name: 'Sueldo', amount: 2000 }],
+        expenses: [{ id: 'e1', name: 'X', amount: 500, category: 'otros', date: '2025-05-01' }],
+      }),
+    };
+    expect(resolveRunningBalance(months, '2025-5')).toBe(2500);
+  });
+
+  it('respeta savings explícito en 0 (no lo trata como ausente)', () => {
+    const months = {
+      '2025-4': mk({ savings: 1000 }),
+      '2025-5': mk({ savings: 0 }),
+    };
+    expect(resolveRunningBalance(months, '2025-5')).toBe(0);
+  });
 });
