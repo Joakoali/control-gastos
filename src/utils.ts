@@ -11,6 +11,7 @@ export const newId = (): string =>
 
 export const mkKey = (year: number, month: number): string => `${year}-${month}`
 
+// Invariante: key siempre tiene formato "AÑO-MES" (generado por mkKey).
 export const parseKey = (key: string): [number, number] => {
   const [year, month] = key.split('-').map(Number)
   return [year, month]

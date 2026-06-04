@@ -34,11 +34,11 @@ describe('resolveForMonth', () => {
   });
 
   it('hereda del mes anterior más cercano cuando el mes no tiene valor propio', () => {
-    const months = {
+    const months: Record<string, Partial<MonthData>> = {
       '2025-3': mk({ savings: 50 }),
-      '2025-6': { ...mk({ expenses: [] }), savings: undefined } as any,
+      '2025-6': { ...mk({ expenses: [] }), savings: undefined },
     };
-    expect(resolveForMonth(months, '2025-6', 'savings', 0)).toBe(50);
+    expect(resolveForMonth(months as Record<string, MonthData>, '2025-6', 'savings', 0)).toBe(50);
   });
 
   it('no hereda de meses futuros', () => {
@@ -47,7 +47,7 @@ describe('resolveForMonth', () => {
   });
 
   it('devuelve el fallback cuando no hay ningún antecesor con valor', () => {
-    const months = { '2025-2': mk({ expenses: [] } as any) };
+    const months = { '2025-2': mk({ expenses: [] }) };
     expect(resolveForMonth(months, '2025-2', 'fixedExpenses', [])).toEqual([]);
   });
 
