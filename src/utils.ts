@@ -41,3 +41,43 @@ export function resolveForMonth<K extends keyof MonthData>(
   }
   return fallback
 }
+
+export function resolveRunningBalance(
+  months: Record<string, MonthData> | undefined,
+  targetKey: string,
+): number {
+  if (!months) return 0
+
+  const keys = Object.keys(months)
+    .filter((k) => compareMonthKeys(k, targetKey) <= 0)
+    .sort(compareMonthKeys) // oldest first
+
+  let balance = 0
+  let prevQuedaMes = 0
+
+  for (const key of keys) {
+    const m = months[key]
+    if (m.savings !== undefined && m.savings !== null) {
+      balance = m.savings
+      prevQuedaMes = 0
+    } else {
+      balance += prevQuedaMes
+    }
+
+    if (key !== targetKey) {
+      const income = m.incomeSources.reduce((s, i) => s + Number(i.amount), 0)
+      const fixed = resolveForMonth(months, key, 'fixedExpenses', []).reduce(
+        (s, e) => s + e.amount,
+        0,
+      )
+      const expenses = m.expenses.reduce((s, e) => s + e.amount, 0)
+      prevQuedaMes = income - fixed - expenses
+    }
+  }
+
+  if (!(targetKey in months)) {
+    balance += prevQuedaMes
+  }
+
+  return balance
+}

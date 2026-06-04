@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MONTHS, CATS } from "./constants";
-import { newId, mkKey, resolveForMonth } from "./utils";
+import { newId, mkKey, resolveForMonth, resolveRunningBalance } from "./utils";
 import { useAuth } from "./hooks/useAuth";
 import { useHousehold } from "./hooks/useHousehold";
 import { useSplits } from "./hooks/useSplits";
@@ -220,7 +220,7 @@ export default function App() {
     []) as IncomeSource[];
 
   const fixedExpenses = resolveForMonth(months, key, "fixedExpenses", []);
-  const savings = resolveForMonth(months, key, "savings", 0);
+  const savings = resolveRunningBalance(months, key);
 
   const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
   const totalVar = md.expenses.reduce((s, e) => s + e.amount, 0);
