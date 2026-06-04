@@ -16,6 +16,10 @@ export default function SavingsModal({
 }: Props) {
   const [val, setVal] = useState(String(savings));
 
+  const adjust = (delta: number) => {
+    setVal(String(Math.round((toFloat(val) + delta) * 100) / 100));
+  };
+
   const save = () => {
     onSave(toFloat(val));
     onClose();
@@ -32,8 +36,8 @@ export default function SavingsModal({
           🏦 Ahorro acumulado
         </div>
         <p className="text-[14px] text-slate-500 mb-5 leading-relaxed">
-          Este es el total de ahorros que tienen hasta la fecha. Actualizalo
-          manualmente cuando quieras.
+          Arranca con tu ahorro acumulado del mes anterior. Ajustalo si sumaste
+          o sacaste plata este mes.
         </p>
 
         <div className="mb-3.5">
@@ -45,10 +49,33 @@ export default function SavingsModal({
             type="text"
             inputMode="decimal"
             value={val}
-            onChange={(e) => setVal(e.target.value.replace(/[^0-9.,]/g, ""))}
+            onChange={(e) => setVal(e.target.value.replace(/[^0-9.,-]/g, ""))}
             placeholder="0,00"
             autoFocus
           />
+        </div>
+
+        <div className="flex gap-2.5 mb-4">
+          <button
+            className="flex-1 py-2.75 border-2 border-emerald-200 rounded-[12px] bg-emerald-50 text-[14px] font-bold text-emerald-700 cursor-pointer"
+            onClick={() => {
+              const raw = window.prompt("¿Cuánto sumaste al ahorro?");
+              const delta = toFloat(raw || "0");
+              if (delta > 0) adjust(delta);
+            }}
+          >
+            + Sumé
+          </button>
+          <button
+            className="flex-1 py-2.75 border-2 border-red-200 rounded-[12px] bg-red-50 text-[14px] font-bold text-red-600 cursor-pointer"
+            onClick={() => {
+              const raw = window.prompt("¿Cuánto sacaste del ahorro?");
+              const delta = toFloat(raw || "0");
+              if (delta > 0) adjust(-delta);
+            }}
+          >
+            − Saqué
+          </button>
         </div>
 
         <div className="bg-violet-50 rounded-[13px] p-[12px_14px] mb-1">

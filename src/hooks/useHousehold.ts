@@ -73,7 +73,7 @@ export function useHousehold(user: User | null | undefined) {
 
   const updateMonth = useCallback(async (key: string, patch: Partial<MonthData>) => {
     if (!householdId || !householdData) return
-    const current = householdData.months?.[key] || { incomeSources: [], savings: 0, expenses: [] }
+    const current = householdData.months?.[key] || { incomeSources: [], expenses: [] }
     await updateDoc(doc(db, 'households', householdId), {
       [`months.${key}`]: { ...current, ...patch },
     })
@@ -83,7 +83,7 @@ export function useHousehold(user: User | null | undefined) {
     if (!householdId) return
     await updateDoc(doc(db, 'households', householdId), {
       [`months.${key}`]: {
-        ...(householdData?.months?.[key] || { incomeSources: [], savings: 0, expenses: [] }),
+        ...(householdData?.months?.[key] || { incomeSources: [], expenses: [] }),
         fixedExpenses,
       },
     })

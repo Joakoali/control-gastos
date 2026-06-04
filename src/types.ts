@@ -21,7 +21,7 @@ export interface IncomeSource {
 
 export interface MonthData {
   incomeSources: IncomeSource[]
-  savings: number
+  savings?: number
   expenses: Expense[]
   fixedExpenses?: FixedExpense[]
 }

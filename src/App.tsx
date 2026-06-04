@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MONTHS, CATS } from "./constants";
-import { newId, mkKey } from "./utils";
+import { newId, mkKey, resolveForMonth } from "./utils";
 import { useAuth } from "./hooks/useAuth";
 import { useHousehold } from "./hooks/useHousehold";
 import { useSplits } from "./hooks/useSplits";
@@ -208,23 +208,19 @@ export default function App() {
   }
 
   const key = mkKey(curYear, curMonth);
-  const md = householdData?.months?.[key] || {
+  const months = householdData?.months;
+  const md = months?.[key] || {
     incomeSources: [],
-    savings: 0,
     expenses: [],
   };
 
   const prevMonthKey =
     curMonth === 0 ? mkKey(curYear - 1, 11) : mkKey(curYear, curMonth - 1);
-  const prevMonthSources = (householdData?.months?.[prevMonthKey]
-    ?.incomeSources || []) as IncomeSource[];
-  const fixedExpenses = (md.fixedExpenses ??
-    householdData?.fixedExpenses ??
-    []) as FixedExpense[];
-  const prevMonthFixed = (householdData?.months?.[prevMonthKey]
-    ?.fixedExpenses ??
-    householdData?.fixedExpenses ??
-    []) as FixedExpense[];
+  const prevMonthSources = (months?.[prevMonthKey]?.incomeSources ||
+    []) as IncomeSource[];
+
+  const fixedExpenses = resolveForMonth(months, key, "fixedExpenses", []);
+  const savings = resolveForMonth(months, key, "savings", 0);
 
   const totalFixed = fixedExpenses.reduce((s, e) => s + e.amount, 0);
   const totalVar = md.expenses.reduce((s, e) => s + e.amount, 0);
@@ -276,12 +272,6 @@ export default function App() {
       key,
       fixedExpenses.filter((e) => e.id !== id),
     );
-  const copyFixed = () =>
-    updateMonthFixed(
-      key,
-      prevMonthFixed.map((e) => ({ ...e, id: newId() })),
-    );
-
   const handleAddSplitExpenseToMonth = (
     splitId: string,
     monthKey: string,
@@ -293,7 +283,6 @@ export default function App() {
     if (!notification) return;
     const monthData = householdData?.months?.[monthKey] || {
       incomeSources: [],
-      savings: 0,
       expenses: [],
     };
     updateMonth(monthKey, {
@@ -362,7 +351,7 @@ export default function App() {
           totalIncome={totalIncome}
           totalVar={totalVar}
           totalFixed={totalFixed}
-          savings={md.savings}
+          savings={savings}
           quedaMes={quedaMes}
           activeTab={tab}
           onTabChange={(t) => {
@@ -390,8 +379,6 @@ export default function App() {
             totalFixed={totalFixed}
             onEdit={setEditFixed}
             onAdd={() => setAddFixed(true)}
-            prevFixedExpenses={prevMonthFixed}
-            onCopyFromPrev={copyFixed}
           />
         )}
         {tab === "ingresos" && (
@@ -399,7 +386,7 @@ export default function App() {
             incomeSources={md.incomeSources || []}
             totalIncome={totalIncome}
             quedaMes={quedaMes}
-            savings={md.savings}
+            savings={savings}
             onEditIncome={() => setShowIncome(true)}
             onEditSavings={() => setShowSavings(true)}
           />
@@ -499,7 +486,7 @@ export default function App() {
       )}
       {showSavings && (
         <SavingsModal
-          savings={md.savings}
+          savings={savings}
           quedaMes={quedaMes}
           onClose={() => setShowSavings(false)}
           onSave={(s) => doUpdateMonth({ savings: s })}
