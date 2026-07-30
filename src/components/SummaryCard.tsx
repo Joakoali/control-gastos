@@ -21,6 +21,7 @@ export default function SummaryCard({
   onTabChange,
 }: Props) {
   const quedaClass = quedaMes >= 0 ? "text-cyan-300" : "text-red-300";
+  const savingsClass = savings < 0 ? "text-red-300" : "text-violet-300";
 
   const chip = (tab: TabType) =>
     `border-none cursor-pointer mt-0.5 ml-0.5 rounded-[20px] px-3 py-[7px] whitespace-nowrap shrink-0 text-left transition-all ${
@@ -42,16 +43,14 @@ export default function SummaryCard({
             {fmt(quedaMes)}
           </div>
         </div>
-        {savings > 0 && (
-          <div className="text-right">
-            <div className="text-white/65 text-[11px] font-semibold uppercase tracking-[0.4px]">
-              Ahorro total
-            </div>
-            <div className="text-violet-300 text-[18px] font-extrabold">
-              {fmt(savings)}
-            </div>
+        <div className="text-right">
+          <div className="text-white/65 text-[11px] font-semibold uppercase tracking-[0.4px]">
+            Ahorro total
           </div>
-        )}
+          <div className={`${savingsClass} text-[18px] font-extrabold`}>
+            {fmt(savings)}
+          </div>
+        </div>
       </div>
 
       <div className="flex gap-1.5 pb-3.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
